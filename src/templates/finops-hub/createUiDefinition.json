@@ -868,8 +868,56 @@
                 "visible": true,
                 "options": {
                   "icon": "Info",
-                  "text": "If you're deploying in a Hub & Spoke topology with centralized Private DNS Zones, provide the resource IDs of existing DNS Zones. This prevents creating duplicate DNS Zones and enables proper DNS resolution across your network. Leave empty to create new Private DNS Zones."
+                  "text": "If you're deploying in a Hub & Spoke topology, you can use existing network infrastructure (VNet, Subnets) and centralized Private DNS Zones. This prevents creating duplicate resources and enables proper DNS resolution across your network. Leave fields empty to create new resources."
                 }
+              },
+              {
+                "name": "existingVirtualNetworkId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Existing Virtual Network ID",
+                "toolTip": "Resource ID of an existing Virtual Network to use instead of creating a new one. When specified, also provide the existing subnet IDs. Example: /subscriptions/{sub-id}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet-name}",
+                "constraints": {
+                  "required": false,
+                  "regex": "^(/subscriptions/[a-fA-F0-9\\-]+/resourceGroups/[^/]+/providers/Microsoft\\.Network/virtualNetworks/[^/]+)?$",
+                  "validationMessage": "Must be a valid Azure resource ID for a Virtual Network or empty."
+                },
+                "visible": true
+              },
+              {
+                "name": "existingPrivateEndpointSubnetId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Existing Private Endpoint Subnet ID",
+                "toolTip": "Resource ID of an existing subnet for Private Endpoints. Required when using an existing VNet. Example: /subscriptions/{sub-id}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet}",
+                "constraints": {
+                  "required": false,
+                  "regex": "^(/subscriptions/[a-fA-F0-9\\-]+/resourceGroups/[^/]+/providers/Microsoft\\.Network/virtualNetworks/[^/]+/subnets/[^/]+)?$",
+                  "validationMessage": "Must be a valid Azure resource ID for a Subnet or empty."
+                },
+                "visible": true
+              },
+              {
+                "name": "existingScriptSubnetId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Existing Script Subnet ID",
+                "toolTip": "Resource ID of an existing subnet for deployment scripts. Required when using an existing VNet. Example: /subscriptions/{sub-id}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet}",
+                "constraints": {
+                  "required": false,
+                  "regex": "^(/subscriptions/[a-fA-F0-9\\-]+/resourceGroups/[^/]+/providers/Microsoft\\.Network/virtualNetworks/[^/]+/subnets/[^/]+)?$",
+                  "validationMessage": "Must be a valid Azure resource ID for a Subnet or empty."
+                },
+                "visible": true
+              },
+              {
+                "name": "existingDataExplorerSubnetId",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Existing Data Explorer Subnet ID",
+                "toolTip": "Resource ID of an existing subnet for Data Explorer. Required when using an existing VNet and Data Explorer is enabled. Example: /subscriptions/{sub-id}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet}",
+                "constraints": {
+                  "required": false,
+                  "regex": "^(/subscriptions/[a-fA-F0-9\\-]+/resourceGroups/[^/]+/providers/Microsoft\\.Network/virtualNetworks/[^/]+/subnets/[^/]+)?$",
+                  "validationMessage": "Must be a valid Azure resource ID for a Subnet or empty."
+                },
+                "visible": true
               },
               {
                 "name": "existingBlobDnsZoneId",
@@ -998,6 +1046,10 @@
       "managedIdentityName": "[steps('customization').resourceNaming.managedIdentityName]",
       "dataExplorerClusterName": "[steps('customization').resourceNaming.dataExplorerClusterName]",
       "privateEndpointNamePrefix": "[steps('customization').resourceNaming.privateEndpointNamePrefix]",
+      "existingVirtualNetworkId": "[steps('customization').centralizedNetworking.existingVirtualNetworkId]",
+      "existingPrivateEndpointSubnetId": "[steps('customization').centralizedNetworking.existingPrivateEndpointSubnetId]",
+      "existingScriptSubnetId": "[steps('customization').centralizedNetworking.existingScriptSubnetId]",
+      "existingDataExplorerSubnetId": "[steps('customization').centralizedNetworking.existingDataExplorerSubnetId]",
       "existingBlobDnsZoneId": "[steps('customization').centralizedNetworking.existingBlobDnsZoneId]",
       "existingDfsDnsZoneId": "[steps('customization').centralizedNetworking.existingDfsDnsZoneId]",
       "existingQueueDnsZoneId": "[steps('customization').centralizedNetworking.existingQueueDnsZoneId]",
