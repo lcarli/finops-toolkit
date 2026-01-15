@@ -189,6 +189,18 @@ param existingVaultDnsZoneId string = ''
 @description('Optional. Resource ID of an existing Private DNS Zone for Data Explorer. If provided, the hub will use this zone instead of creating a new one. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/privateDnsZones/privatelink.{region}.kusto.windows.net')
 param existingDataExplorerDnsZoneId string = ''
 
+@description('Optional. Resource ID of an existing Virtual Network. If provided, the hub will use this VNet instead of creating a new one. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}')
+param existingVirtualNetworkId string = ''
+
+@description('Optional. Resource ID of an existing subnet for private endpoints (storage, Key Vault, Data Factory). Only used when existingVirtualNetworkId is provided. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}')
+param existingPrivateEndpointSubnetId string = ''
+
+@description('Optional. Resource ID of an existing subnet for deployment scripts. Only used when existingVirtualNetworkId is provided. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}')
+param existingScriptSubnetId string = ''
+
+@description('Optional. Resource ID of an existing subnet for Data Explorer. Only used when existingVirtualNetworkId is provided and Data Explorer is enabled. Format: /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}')
+param existingDataExplorerSubnetId string = ''
+
 
 //==============================================================================
 // Resources
@@ -232,6 +244,10 @@ module hub 'modules/hub.bicep' = {
     existingTableDnsZoneId: existingTableDnsZoneId
     existingVaultDnsZoneId: existingVaultDnsZoneId
     existingDataExplorerDnsZoneId: existingDataExplorerDnsZoneId
+    existingVirtualNetworkId: existingVirtualNetworkId
+    existingPrivateEndpointSubnetId: existingPrivateEndpointSubnetId
+    existingScriptSubnetId: existingScriptSubnetId
+    existingDataExplorerSubnetId: existingDataExplorerSubnetId
   }
 }
 

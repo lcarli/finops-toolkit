@@ -203,6 +203,18 @@ param existingVaultDnsZoneId string = ''
 @description('Optional. Resource ID of an existing Private DNS Zone for Data Explorer. If provided, the hub will use this zone instead of creating a new one.')
 param existingDataExplorerDnsZoneId string = ''
 
+@description('Optional. Resource ID of an existing Virtual Network. If provided, the hub will use this VNet instead of creating a new one.')
+param existingVirtualNetworkId string = ''
+
+@description('Optional. Resource ID of an existing subnet for private endpoints (storage, Key Vault, Data Factory). Only used when existingVirtualNetworkId is provided.')
+param existingPrivateEndpointSubnetId string = ''
+
+@description('Optional. Resource ID of an existing subnet for deployment scripts. Only used when existingVirtualNetworkId is provided.')
+param existingScriptSubnetId string = ''
+
+@description('Optional. Resource ID of an existing subnet for Data Explorer. Only used when existingVirtualNetworkId is provided and Data Explorer is enabled.')
+param existingDataExplorerSubnetId string = ''
+
 
 //==============================================================================
 // Variables
@@ -234,7 +246,11 @@ var hub = newHub(
   existingQueueDnsZoneId,
   existingTableDnsZoneId,
   existingVaultDnsZoneId,
-  existingDataExplorerDnsZoneId
+  existingDataExplorerDnsZoneId,
+  existingVirtualNetworkId,
+  existingPrivateEndpointSubnetId,
+  existingScriptSubnetId,
+  existingDataExplorerSubnetId
 )
 
 var useFabric = !empty(fabricQueryUri)

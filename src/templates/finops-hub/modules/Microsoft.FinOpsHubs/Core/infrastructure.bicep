@@ -16,6 +16,9 @@ param hub HubProperties
 // Variables
 //==============================================================================
 
+// Check if using existing network resources
+var useExistingVNet = !empty(hub.existingNetwork.virtualNetworkId)
+
 var nsgName = '${hub.routing.networkName}-nsg'
 
 // Workaround https://github.com/Azure/bicep/issues/1853
@@ -23,7 +26,8 @@ var finopsHubSubnetName = 'private-endpoint-subnet'
 var scriptSubnetName = 'script-subnet'
 var dataExplorerSubnetName = 'dataExplorer-subnet'
 
-var subnets = !hub.options.privateRouting ? [] : [
+// Only define subnets when creating a new VNet (not using existing)
+var subnets = !hub.options.privateRouting || useExistingVNet ? [] : [
   {
     name: finopsHubSubnetName
     properties: {
@@ -80,7 +84,8 @@ var subnets = !hub.options.privateRouting ? [] : [
 // Network
 //------------------------------------------------------------------------------
 
-resource nsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = if (hub.options.privateRouting) {
+// Create NSG only if private routing is enabled and creating a new VNet
+resource nsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = if (hub.options.privateRouting && !useExistingVNet) {
   name: nsgName
   location: hub.location
   tags: getHubTags(hub, 'Microsoft.Storage/networkSecurityGroups')
@@ -168,7 +173,8 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2023-11-01' = if (hub.opti
   }
 }
 
-resource vNet 'Microsoft.Network/virtualNetworks@2023-11-01' = if (hub.options.privateRouting) {
+// Create VNet only if private routing is enabled and no existing VNet is provided
+resource vNet 'Microsoft.Network/virtualNetworks@2023-11-01' = if (hub.options.privateRouting && !useExistingVNet) {
   name: hub.routing.networkName
   location: hub.location
   tags: getHubTags(hub, 'Microsoft.Storage/virtualNetworks')
@@ -381,21 +387,21 @@ resource scriptEndpoint 'Microsoft.Network/privateEndpoints@2023-11-01' = if (hu
 output config HubProperties = hub
 
 @description('Resource ID of the virtual network.')
-output vNetId string = !hub.options.privateRouting ? '' : vNet.id
+output vNetId string = !hub.options.privateRouting ? '' : (useExistingVNet ? hub.existingNetwork.virtualNetworkId : vNet.id)
 
 @description('Virtual network address prefixes.')
 #disable-next-line BCP318 // Null safety warning for conditional resource access
-output vNetAddressSpace array = !hub.options.privateRouting ? [] : vNet.properties.addressSpace.addressPrefixes
+output vNetAddressSpace array = !hub.options.privateRouting || useExistingVNet ? [] : vNet.properties.addressSpace.addressPrefixes
 
 @description('Virtual network subnets.')
 #disable-next-line BCP318 // Null safety warning for conditional resource access
-output vNetSubnets array = !hub.options.privateRouting ? [] : vNet.properties.subnets
+output vNetSubnets array = !hub.options.privateRouting || useExistingVNet ? [] : vNet.properties.subnets
 
 @description('Resource ID of the FinOps hub network subnet.')
-output finopsHubSubnetId string = !hub.options.privateRouting ? '' : vNet::finopsHubSubnet.id
+output finopsHubSubnetId string = !hub.options.privateRouting ? '' : (useExistingVNet ? hub.existingNetwork.privateEndpointSubnetId : vNet::finopsHubSubnet.id)
 
 @description('Resource ID of the script storage account network subnet.')
-output scriptSubnetId string = !hub.options.privateRouting ? '' : vNet::scriptSubnet.id
+output scriptSubnetId string = !hub.options.privateRouting ? '' : (useExistingVNet ? hub.existingNetwork.scriptSubnetId : vNet::scriptSubnet.id)
 
 @description('Resource ID of the Data Explorer network subnet.')
-output dataExplorerSubnetId string = !hub.options.privateRouting ? '' : vNet::dataExplorerSubnet.id
+output dataExplorerSubnetId string = !hub.options.privateRouting ? '' : (useExistingVNet ? hub.existingNetwork.dataExplorerSubnetId : vNet::dataExplorerSubnet.id)

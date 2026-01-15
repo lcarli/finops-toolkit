@@ -93,6 +93,12 @@ type HubRoutingProperties = {
     vault: 'Resource ID of an existing Private DNS Zone for Key Vault, if provided.'
     dataExplorer: 'Resource ID of an existing Private DNS Zone for Data Explorer, if provided.'
   }
+  existingNetwork: {
+    virtualNetworkId: 'Resource ID of an existing Virtual Network, if provided.'
+    privateEndpointSubnetId: 'Resource ID of an existing subnet for private endpoints, if provided.'
+    scriptSubnetId: 'Resource ID of an existing subnet for deployment scripts, if provided.'
+    dataExplorerSubnetId: 'Resource ID of an existing subnet for Data Explorer, if provided.'
+  }
   routing: 'FinOps hub private network routing properties, if enabled.'
   core: {
     suffix: 'Unique suffix used for shared resources.'
@@ -132,6 +138,12 @@ type HubProperties = {
     table: string
     vault: string
     dataExplorer: string
+  }
+  existingNetwork: {
+    virtualNetworkId: string
+    privateEndpointSubnetId: string
+    scriptSubnetId: string
+    dataExplorerSubnetId: string
   }
   routing: HubRoutingProperties
   core: {
@@ -231,7 +243,11 @@ func newHubInternal(
   existingQueueDnsZoneId string,
   existingTableDnsZoneId string,
   existingVaultDnsZoneId string,
-  existingDataExplorerDnsZoneId string
+  existingDataExplorerDnsZoneId string,
+  existingVirtualNetworkId string,
+  existingPrivateEndpointSubnetId string,
+  existingScriptSubnetId string,
+  existingDataExplorerSubnetId string
 ) HubProperties => {
   id: id
   name: name
@@ -269,9 +285,15 @@ func newHubInternal(
     vault: existingVaultDnsZoneId
     dataExplorer: existingDataExplorerDnsZoneId
   }
+  existingNetwork: {
+    virtualNetworkId: existingVirtualNetworkId
+    privateEndpointSubnetId: existingPrivateEndpointSubnetId
+    scriptSubnetId: existingScriptSubnetId
+    dataExplorerSubnetId: existingDataExplorerSubnetId
+  }
   routing: {
-    networkId: enablePublicAccess ? '' : resourceId('Microsoft.Network/virtualNetworks', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName)
-    networkName: enablePublicAccess ? '' : (!empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName)
+    networkId: enablePublicAccess ? '' : (!empty(existingVirtualNetworkId) ? existingVirtualNetworkId : resourceId('Microsoft.Network/virtualNetworks', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName))
+    networkName: enablePublicAccess ? '' : (!empty(existingVirtualNetworkId) ? last(split(existingVirtualNetworkId, '/'))! : (!empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName))
     scriptStorage: enablePublicAccess ? '' : '${take(safeStorageName(name), 16 - length(suffix))}script${suffix}'
     dnsZones: {
       blob:  enablePublicAccess ? { id:'', name:'' } : dnsZoneIdName('blob')
@@ -280,11 +302,11 @@ func newHubInternal(
       table: enablePublicAccess ? { id:'', name:'' } : dnsZoneIdName('table')
     }
     subnets: {
-      dataExplorer: enablePublicAccess ? '' : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'dataExplorer-subnet')!
-      dataFactory:  enablePublicAccess ? '' : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'private-endpoint-subnet')!
-      keyVault:     enablePublicAccess ? '' : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'private-endpoint-subnet')!
-      scripts:      enablePublicAccess ? '' : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'script-subnet')!
-      storage:      enablePublicAccess ? '' : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'private-endpoint-subnet')!
+      dataExplorer: enablePublicAccess ? '' : (!empty(existingDataExplorerSubnetId) ? existingDataExplorerSubnetId : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'dataExplorer-subnet'))!
+      dataFactory:  enablePublicAccess ? '' : (!empty(existingPrivateEndpointSubnetId) ? existingPrivateEndpointSubnetId : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'private-endpoint-subnet'))!
+      keyVault:     enablePublicAccess ? '' : (!empty(existingPrivateEndpointSubnetId) ? existingPrivateEndpointSubnetId : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'private-endpoint-subnet'))!
+      scripts:      enablePublicAccess ? '' : (!empty(existingScriptSubnetId) ? existingScriptSubnetId : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'script-subnet'))!
+      storage:      enablePublicAccess ? '' : (!empty(existingPrivateEndpointSubnetId) ? existingPrivateEndpointSubnetId : resourceId('Microsoft.Network/virtualNetworks/subnets', !empty(customVirtualNetworkName) ? customVirtualNetworkName : networkName, 'private-endpoint-subnet'))!
     }
   }
   core: {
@@ -317,7 +339,11 @@ func newHub(
   existingQueueDnsZoneId string,
   existingTableDnsZoneId string,
   existingVaultDnsZoneId string,
-  existingDataExplorerDnsZoneId string
+  existingDataExplorerDnsZoneId string,
+  existingVirtualNetworkId string,
+  existingPrivateEndpointSubnetId string,
+  existingScriptSubnetId string,
+  existingDataExplorerSubnetId string
 ) HubProperties => newHubInternal(
   '${resourceGroup().id}/providers/Microsoft.Cloud/hubs/${name}',  // id
   name,
@@ -344,7 +370,11 @@ func newHub(
   existingQueueDnsZoneId,
   existingTableDnsZoneId,
   existingVaultDnsZoneId,
-  existingDataExplorerDnsZoneId
+  existingDataExplorerDnsZoneId,
+  existingVirtualNetworkId,
+  existingPrivateEndpointSubnetId,
+  existingScriptSubnetId,
+  existingDataExplorerSubnetId
 )
 
 //------------------------------------------------------------------------------
